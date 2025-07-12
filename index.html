@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rk Hub | IA</title>
+    <style>
+        /* Estilos Globais e Tema (sem alterações) */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
+        .header h1 { font-size: 3.5em; margin: 0; color: #00aaff; font-weight: 700; letter-spacing: 2px; }
+        .buttons { text-align: center; margin-bottom: 40px; display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; }
+        .button { background-color: #1e1e1e; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; transition: background-color 0.3s, transform 0.2s; border: 1px solid #00aaff; cursor: pointer; font-size: 1em; }
+        .button:hover { background-color: #00aaff; color: #121212; transform: translateY(-3px); }
+        #add-script-btn { background-color: #4CAF50; border-color: #4CAF50; }
+        #add-script-btn:hover { background-color: #58d35d; border-color: #58d35d; color: #121212; }
+        .search-container { text-align: center; margin-bottom: 40px; }
+        #search-input { width: 80%; padding: 12px; border: 2px solid #00aaff; border-radius: 8px; background-color: #1e1e1e; color: #ffffff; font-size: 1em; outline: none; }
+        #search-input::placeholder { color: #888; }
+        .scripts-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .script-card { background-color: #1e1e1e; border: 1px solid #00aaff; border-radius: 8px; padding: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .script-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 170, 255, 0.2); }
+        .script-card h3 { margin-top: 0; color: #00aaff; font-size: 1.2em; }
+        .script-card .description, .script-card .loadstring { display: none; margin-top: 15px; font-size: 0.9em; color: #cccccc; word-wrap: break-word; }
+        .script-card .loadstring { background-color: #101010; padding: 10px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); }
+        .modal-content { background-color: #1e1e1e; margin: 10% auto; padding: 25px; border: 1px solid #00aaff; border-radius: 8px; position: relative; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5); width: 90%; }
+        .close-btn { color: #aaa; float: right; font-size: 30px; font-weight: bold; cursor: pointer; line-height: 0.8; }
+        .close-btn:hover, .close-btn:focus { color: #ffffff; }
+        #add-script-modal .modal-content { max-width: 500px; }
+        #add-script-modal h2 { color: #00aaff; text-align: center; margin-top: 0; }
+        #add-script-modal input, #add-script-modal textarea { width: calc(100% - 24px); padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #555; background-color: #333333; color: #ffffff; font-size: 1em; }
+        #script-name { background-color: #e0f7ff; color: #000; }
+        #add-script-modal textarea { resize: vertical; min-height: 80px; }
+        #create-script-btn { background-color: #4CAF50; color: white; padding: 14px 20px; margin: 10px 0 0 0; border: none; cursor: pointer; width: 100%; border-radius: 5px; font-weight: bold; font-size: 1.1em; transition: background-color 0.3s; }
+        #create-script-btn:hover { background-color: #45a049; }
+        #flappy-bird-modal .modal-content { max-width: 400px; height: 70vh; padding: 10px; }
+        #flappy-bird-iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Rk Hub | IA</h1>
+        </div>
+
+        <div class="buttons">
+            <a href="https://www.youtube.com/@Rei_dos_scripts1" target="_blank" class="button">YouTube</a>
+            <button id="flappy-bird-btn" class="button">FlappyBird</button>
+            <!-- ATUALIZADO: O botão do Chat IA agora é um link que abre em uma nova aba -->
+            <a href="https://claude.ai/new" target="_blank" id="chat-ia-btn" class="button">Chat IA 🤖</a>
+            <button id="add-script-btn" class="button">+</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="search-input" onkeyup="searchScripts()" placeholder="Pesquisar por nome do script...">
+        </div>
+
+        <div id="scripts-list" class="scripts-container">
+            <!-- Os scripts carregados do banco de dados aparecerão aqui -->
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Script (sem alterações) -->
+    <div id="add-script-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-add-modal">×</span>
+            <h2>Criar Novo Script</h2>
+            <input type="text" id="script-name" placeholder="Nome do script">
+            <textarea id="script-description" placeholder="Descrição"></textarea>
+            <textarea id="script-loadstring" placeholder="Loadstring do Script"></textarea>
+            <button id="create-script-btn">Criar Script</button>
+        </div>
+    </div>
+    
+    <!-- Modal para o Flappy Bird (sem alterações) -->
+    <div id="flappy-bird-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-flappy-modal">×</span>
+            <iframe id="flappy-bird-iframe" src="https://nebez.github.io/floppybird/"></iframe>
+        </div>
+    </div>
+
+    <!-- ATUALIZADO: Modal do Chat IA removido -->
+
+    <!-- ATUALIZADO: Incluir o SDK do Firebase para conectar ao banco de dados -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // --- ETAPA DE CONFIGURAÇÃO DO FIREBASE ---
+        // 1. Acesse https://firebase.google.com/ e crie um novo projeto.
+        // 2. No painel do seu projeto, vá para "Realtime Database", clique em "Criar banco de dados" e inicie no "modo de teste".
+        // 3. Volte para a Visão Geral do Projeto, clique no ícone da Web (</>) para adicionar um novo app da Web.
+        // 4. Copie o objeto de configuração do Firebase que será exibido e cole-o aqui.
+        
+        const firebaseConfig = {
+            apiKey: "COLE_SUA_API_KEY_AQUI",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            databaseURL: "https://SEU_PROJETO.firebasedatabase.app",
+            projectId: "SEU_PROJETO_ID",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const scriptsList = document.getElementById('scripts-list');
+            const searchInput = document.getElementById('search-input');
+            let allScripts = []; // Array para armazenar todos os scripts do banco de dados
+
+            const renderScripts = (scriptsToRender) => {
+                scriptsList.innerHTML = '';
+                // A chave original é usada para identificação, mas não precisamos exibi-la.
+                Object.values(scriptsToRender).forEach(script => {
+                    const card = document.createElement('div');
+                    card.className = 'script-card';
+                    // Usamos Object.values pois o Firebase retorna objetos com chaves únicas
+                    card.innerHTML = `<h3>${script.name}</h3><p class="description">${script.description}</p><p class="loadstring">${script.loadstring}</p>`;
+                    scriptsList.appendChild(card);
+                });
+            };
+            
+            // Função para carregar os scripts do Firebase
+            const loadScripts = () => {
+                const scriptsRef = database.ref('scripts/');
+                scriptsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    allScripts = data ? data : {};
+                    renderScripts(allScripts);
+                });
+            };
+
+            scriptsList.addEventListener('click', (e) => {
+                const card = e.target.closest('.script-card');
+                if (card) {
+                    const description = card.querySelector('.description');
+                    const loadstring = card.querySelector('.loadstring');
+                    const isVisible = description.style.display === 'block';
+                    description.style.display = isVisible ? 'none' : 'block';
+                    loadstring.style.display = isVisible ? 'none' : 'block';
+                }
+            });
+
+            window.searchScripts = () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                // Filtra o objeto de scripts
+                const filteredScripts = Object.fromEntries(
+                    Object.entries(allScripts).filter(([key, script]) => 
+                        script.name.toLowerCase().includes(searchTerm)
+                    )
+                );
+                renderScripts(filteredScripts);
+            };
+
+            // --- Gerenciamento de Modais ---
+
+            // Modal de Adicionar Script
+            const addModal = document.getElementById('add-script-modal');
+            const addBtn = document.getElementById('add-script-btn');
+            const closeAddBtn = document.getElementById('close-add-modal');
+            const createBtn = document.getElementById('create-script-btn');
+            addBtn.onclick = () => addModal.style.display = 'block';
+            closeAddBtn.onclick = () => addModal.style.display = 'none';
+            createBtn.onclick = () => {
+                const password = prompt("Apenas o dono pode criar. Digite a senha:");
+                if (password === "olk123456olk") { 
+                    const name = document.getElementById('script-name').value.trim();
+                    const description = document.getElementById('script-description').value.trim();
+                    const loadstring = document.getElementById('script-loadstring').value.trim();
+                    if (name && description && loadstring) {
+                        // ATUALIZADO: Salva o novo script no Firebase
+                        const newScriptRef = database.ref('scripts/').push();
+                        newScriptRef.set({ name, description, loadstring });
+                        
+                        addModal.style.display = 'none';
+                        document.getElementById('script-name').value = '';
+                        document.getElementById('script-description').value = '';
+                        document.getElementById('script-loadstring').value = '';
+                    } else {
+                        alert("Por favor, preencha todos os campos.");
+                    }
+                } else if (password !== null) {
+                    alert("Senha incorreta!");
+                }
+            };
+            
+            // Modal do Flappy Bird
+            const flappyModal = document.getElementById('flappy-bird-modal');
+            const flappyBtn = document.getElementById('flappy-bird-btn');
+            const closeFlappyBtn = document.getElementById('close-flappy-modal');
+            const flappyIframe = document.getElementById('flappy-bird-iframe');
+            const flappyOriginalSrc = flappyIframe.src;
+            flappyBtn.onclick = () => flappyModal.style.display = 'block';
+            closeFlappyBtn.onclick = () => {
+                flappyModal.style.display = 'none';
+                flappyIframe.src = flappyOriginalSrc; // Reseta o jogo
+            };
+
+            // ATUALIZADO: Lógica do modal de Chat IA foi removida
+
+            // Fechar modais clicando fora
+            window.onclick = (event) => {
+                if (event.target == addModal) addModal.style.display = 'none';
+                if (event.target == flappyModal) {
+                    flappyModal.style.display = 'none';
+                    flappyIframe.src = flappyOriginalSrc; // Reseta o jogo
+                }
+            };
+
+            // Renderiza os scripts iniciais a partir do Firebase
+            loadScripts();
+        });
+    </script>
+
+</body>
+</html>
